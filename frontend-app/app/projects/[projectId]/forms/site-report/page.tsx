@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { Plus, Trash2, Save } from "lucide-react"
+import jsPDF from "jspdf"
+import html2canvas from "html2canvas"
 import Header from "@/components/layout/Header"
 import { projects, siteReports } from "@/lib/mock-data"
 import type { WorkItem, MaterialReceiptReportEntry } from "@/lib/types"
@@ -90,6 +92,182 @@ export default function SiteReportPage() {
       siteVisitors, preparedBy, siteIncharge,
     }
     console.log("[Site Report] Saved:", data)
+    exportToPDF(data)
+  }
+
+  function exportToPDF(data: any) {
+    const pdf = new jsPDF()
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    let yPosition = 10
+
+    // Helper function to add text with wrapping
+    const addText = (text: string, size: number = 12, weight: "normal" | "bold" = "normal", y?: number) => {
+      pdf.setFontSize(size)
+      pdf.setFont("helvetica", weight)
+      if (y) yPosition = y
+      const splitText = pdf.splitTextToSize(text, pageWidth - 20)
+      pdf.text(splitText, 10, yPosition)
+      yPosition += splitText.length * (size / 3) + 2
+    }
+
+    const addNewPage = () => {
+      pdf.addPage()
+      yPosition = 10
+    }
+
+    // Title
+    addText("DAILY SITE REPORT", 16, "bold")
+    yPosition += 2
+
+    // Report Header
+    addText("Project: " + (project?.name ?? data.projectId), 11)
+    addText("Date: " + data.date, 11)
+    addText("Rain Time: " + (data.rainFrom || "N/A") + " to " + (data.rainTo || "N/A"), 11)
+    yPosition += 3
+
+    // Work Items Section
+    if (data.workItems.length > 0) {
+      addText("Work Items & Labour Deployed", 12, "bold")
+      yPosition += 2
+
+      const columnWidths = [15, 50, 15, 15, 15, 15, 15, 15, 15]
+      const headers = ["Item No", "Description", "Carpenter", "Fitter", "Helper", "Mason", "Skilled", "Unskilled", "Total"]
+
+      // Table header
+      let xPosition = 10
+      headers.forEach((header, idx) => {
+        pdf.setFontSize(9)
+        pdf.setFont("helvetica", "bold")
+        pdf.text(header, xPosition, yPosition)
+        xPosition += columnWidths[idx]
+      })
+      yPosition += 5
+
+      // Table rows
+      pdf.setFont("helvetica", "normal")
+      pdf.setFontSize(8)
+      data.workItems.forEach((item: any) => {
+        const total = (item.carpenter || 0) + (item.fitter || 0) + (item.helper || 0) + (item.mason || 0) + (item.skilled || 0) + (item.unskilled || 0)
+        const values = [item.itemNo, item.description, item.carpenter, item.fitter, item.helper, item.mason, item.skilled, item.unskilled, total]
+        xPosition = 10
+        values.forEach((val, idx) => {
+          pdf.text(String(val), xPosition, yPosition)
+          xPosition += columnWidths[idx]
+        })
+        yPosition += 4
+        if (yPosition > pageHeight - 20) {
+          addNewPage()
+        }
+      })
+      yPosition += 3
+    }
+
+    // Remarks Section
+    if (data.remarks) {
+      addText("Remarks (Shortfall of Labors / Materials):", 11, "bold")
+      addText(data.remarks, 10)
+      yPosition += 2
+    }
+
+    // RMC Report
+    if (data.rmcPreviousReceipt || data.rmcTodaysReceipt || data.rmcCumulativeReceipt || data.rmcOpeningBalance || data.rmcTodaysConsumption || data.rmcClosingBalance) {
+      addText("RMC (Ready Mix Concrete) Report", 11, "bold")
+      addText("Previous Receipt (cum): " + data.rmcPreviousReceipt, 10)
+      addText("Today's Receipt (cum): " + data.rmcTodaysReceipt, 10)
+      addText("Cumulative Receipt (cum): " + data.rmcCumulativeReceipt, 10)
+      addText("Opening Balance (cum): " + data.rmcOpeningBalance, 10)
+      addText("Today's Consumption (cum): " + data.rmcTodaysConsumption, 10)
+      addText("Closing Balance (cum): " + data.rmcClosingBalance, 10)
+      yPosition += 2
+      if (yPosition > pageHeight - 40) addNewPage()
+    }
+
+    // Reinforcement Steel Report
+    if (data.reinfPreviousReceipt || data.reinfTodaysReceipt || data.reinfCumulativeReceipt || data.reinfOpeningBalance || data.reinfTodaysConsumption || data.reinfClosingBalance) {
+      addText("Reinforcement Steel Report", 11, "bold")
+      addText("Previous Receipt (MT): " + data.reinfPreviousReceipt, 10)
+      addText("Today's Receipt (MT): " + data.reinfTodaysReceipt, 10)
+      addText("Cumulative Receipt (MT): " + data.reinfCumulativeReceipt, 10)
+      addText("Opening Balance (MT): " + data.reinfOpeningBalance, 10)
+      addText("Today's Consumption (MT): " + data.reinfTodaysConsumption, 10)
+      addText("Closing Balance (MT): " + data.reinfClosingBalance, 10)
+      yPosition += 2
+      if (yPosition > pageHeight - 40) addNewPage()
+    }
+
+    // Decisions Pending
+    if (data.decisionsPending) {
+      addText("Decisions Pending:", 11, "bold")
+      addText(data.decisionsPending, 10)
+      yPosition += 2
+      if (yPosition > pageHeight - 40) addNewPage()
+    }
+
+    // Milestones Achieved
+    if (data.milestonesAchieved) {
+      addText("Milestones Achieved / Missed:", 11, "bold")
+      addText(data.milestonesAchieved, 10)
+      yPosition += 2
+      if (yPosition > pageHeight - 40) addNewPage()
+    }
+
+    // Material Receipt Report
+    if (data.materialReceiptReport.length > 0) {
+      addText("Material Receipt Report", 12, "bold")
+      yPosition += 2
+
+      const matColumnWidths = [15, 40, 15, 20, 15, 15, 15, 15]
+      const matHeaders = ["Item No", "Material Description", "Unit", "Supplier Name", "Challan No", "Previous", "Today", "Cumulative"]
+
+      // Table header
+      let xPos = 10
+      matHeaders.forEach((header, idx) => {
+        pdf.setFontSize(8)
+        pdf.setFont("helvetica", "bold")
+        pdf.text(header, xPos, yPosition)
+        xPos += matColumnWidths[idx]
+      })
+      yPosition += 4
+
+      // Table rows
+      pdf.setFont("helvetica", "normal")
+      pdf.setFontSize(7)
+      data.materialReceiptReport.forEach((row: any) => {
+        const values = [row.itemNo, row.materialDescription, row.unit, row.supplierName, row.challanNo, row.previous, row.today, row.cumulative]
+        xPos = 10
+        values.forEach((val, idx) => {
+          pdf.text(String(val), xPos, yPosition)
+          xPos += matColumnWidths[idx]
+        })
+        yPosition += 4
+        if (yPosition > pageHeight - 20) {
+          addNewPage()
+        }
+      })
+      yPosition += 3
+    }
+
+    // Site Visitors
+    if (data.siteVisitors) {
+      if (yPosition > pageHeight - 40) addNewPage()
+      addText("Site Visitors:", 11, "bold")
+      addText(data.siteVisitors, 10)
+      yPosition += 2
+    }
+
+    // Sign-off
+    if (yPosition > pageHeight - 30) addNewPage()
+    yPosition += 5
+    addText("Sign-off", 11, "bold")
+    yPosition += 3
+    addText("Prepared By: " + data.preparedBy, 10)
+    yPosition += 8
+    addText("Site Incharge: " + data.siteIncharge, 10)
+
+    // Save PDF
+    const fileName = `SiteReport_${project?.name || data.projectId}_${data.date}.pdf`
+    pdf.save(fileName)
   }
 
   const inputClass = "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
