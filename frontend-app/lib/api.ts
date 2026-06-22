@@ -4,9 +4,15 @@ function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
 }
 
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === "undefined") return {}
+  const token = localStorage.getItem("access_token")
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders(), ...options?.headers },
     ...options,
   })
   if (!res.ok) {

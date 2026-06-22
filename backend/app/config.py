@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     api_prefix: str = "/api/v1"
     default_page_size: int = 50
     max_page_size: int = 200
+    jwt_secret: str = Field(
+        default="change-me-in-production-use-a-strong-random-secret",
+        validation_alias="JWT_SECRET",
+    )
+    jwt_algorithm: str = "HS256"
+    jwt_expiry_minutes: int = Field(default=1440, validation_alias="JWT_EXPIRY_MINUTES")
 
     model_config = SettingsConfigDict(
         env_file=".env",

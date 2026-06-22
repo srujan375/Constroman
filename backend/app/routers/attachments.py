@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession
 from app.schemas import AttachmentCreate, AttachmentRead
 from app.services.attachment_service import create_attachment, list_attachments
 
-router = APIRouter(prefix="/attachments", tags=["attachments"])
+router = APIRouter(
+    prefix="/attachments",
+    tags=["attachments"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("", response_model=AttachmentRead, status_code=status.HTTP_201_CREATED)

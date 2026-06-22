@@ -17,6 +17,7 @@ from app.routers import (
     comments,
     audit_logs,
 )
+from app.auth import router as auth_router
 
 settings = get_settings()
 
@@ -77,6 +78,7 @@ async def shutdown() -> None:
     logger.info("Shutting down %s", settings.app_name)
 
 
+app.include_router(auth_router.router)
 app.include_router(health.router)
 app.include_router(projects.router)
 app.include_router(reports.router)

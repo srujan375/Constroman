@@ -1,10 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession
 from app.schemas import FormCategoryRead
 from app.services.categories import list_categories
 
-router = APIRouter(tags=["categories"])
+router = APIRouter(
+    tags=["categories"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("/categories", response_model=list[FormCategoryRead])

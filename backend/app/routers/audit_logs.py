@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession
 from app.schemas import AuditLogRead
 from app.services.audit_service import list_audit_logs
 
-router = APIRouter(prefix="/audit-logs", tags=["audit-logs"])
+router = APIRouter(
+    prefix="/audit-logs",
+    tags=["audit-logs"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("", response_model=list[AuditLogRead])

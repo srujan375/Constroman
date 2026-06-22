@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession
 from app.schemas import CommentCreate, CommentRead
 from app.services.comment_service import create_comment, list_comments
 
-router = APIRouter(prefix="/comments", tags=["comments"])
+router = APIRouter(
+    prefix="/comments",
+    tags=["comments"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("", response_model=CommentRead, status_code=status.HTTP_201_CREATED)

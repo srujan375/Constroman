@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession
+from app.models import User
 from app.schemas import (
     SubmissionCreate,
     SubmissionRead,
@@ -14,7 +16,11 @@ from app.services.submission_service import (
     update_submission_status,
 )
 
-router = APIRouter(prefix="/submissions", tags=["submissions"])
+router = APIRouter(
+    prefix="/submissions",
+    tags=["submissions"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("", response_model=SubmissionRead, status_code=status.HTTP_201_CREATED)

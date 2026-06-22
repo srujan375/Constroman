@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession, Pagination
 from app.schemas import ReportCreate, ReportRead
 from app.services.report_service import create_report, list_reports, get_report
 
-router = APIRouter(prefix="/reports", tags=["reports"])
+router = APIRouter(
+    prefix="/reports",
+    tags=["reports"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("", response_model=ReportRead, status_code=status.HTTP_201_CREATED)

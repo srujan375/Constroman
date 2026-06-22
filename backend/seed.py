@@ -1,5 +1,6 @@
 from datetime import date
 
+from app.auth.utils import hash_password
 from app.database import SessionLocal, engine, Base
 from app.models import (
     Organization,
@@ -33,7 +34,7 @@ def seed():
         organization_id=org.id,
         name="Admin User",
         email="admin@constroman.com",
-        password_hash="pbkdf2:sha256:600000$placeholder",
+        password_hash=hash_password("admin123"),
         role="admin",
         is_active=True,
     )

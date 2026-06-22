@@ -1,10 +1,16 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession, Pagination
+from app.models import User
 from app.schemas import ProjectRead
 from app.services.project_service import list_projects, get_project
 
-router = APIRouter(prefix="/projects", tags=["projects"])
+router = APIRouter(
+    prefix="/projects",
+    tags=["projects"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("", response_model=list[ProjectRead])

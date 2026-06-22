@@ -1,10 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.auth.dependencies import get_current_user
 from app.dependencies import DbSession
 from app.schemas import RegisterRead
 from app.services.register_service import list_registers, get_register
 
-router = APIRouter(prefix="/registers", tags=["registers"])
+router = APIRouter(
+    prefix="/registers",
+    tags=["registers"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("", response_model=list[RegisterRead])
