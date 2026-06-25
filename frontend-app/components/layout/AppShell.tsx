@@ -1,20 +1,7 @@
 'use client'
 
-import { usePathname } from "next/navigation"
-import Sidebar from "./Sidebar"
-
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  const isLogin = pathname === "/login"
-
-  if (isLogin) {
-    return <>{children}</>
-  }
-
-  return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
-  )
+  // Each page renders its own top bar / header. The shell just provides a
+  // full-height scroll container so the site stays clean and simple.
+  return <main className="h-screen overflow-y-auto">{children}</main>
 }

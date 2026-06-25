@@ -8,8 +8,8 @@ import AppShell from "@/components/layout/AppShell"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "DPR — Daily Progress Report",
-  description: "Construction site daily progress tracking",
+  title: "SiteLedger — Daily Site Records",
+  description: "Store and display daily construction site register data, by date.",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

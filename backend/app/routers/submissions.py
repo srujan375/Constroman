@@ -5,6 +5,7 @@ from app.dependencies import DbSession
 from app.models import User
 from app.schemas import (
     SubmissionCreate,
+    SubmissionUpdate,
     SubmissionRead,
     SubmissionListParams,
     PaginatedResponse,
@@ -13,6 +14,8 @@ from app.services.submission_service import (
     create_submission,
     get_submission,
     list_submissions,
+    update_submission,
+    delete_submission,
     update_submission_status,
 )
 
@@ -57,6 +60,16 @@ def get_submissions(
         sort_order=sort_order,
     )
     return list_submissions(db, organization_id=organization_id, params=params)
+
+
+@router.put("/{id}", response_model=SubmissionRead)
+def put_submission(id: int, payload: SubmissionUpdate, db: DbSession) -> SubmissionRead:
+    return update_submission(db, id, payload)
+
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_submission(id: int, db: DbSession, user_id: int | None = Query(default=None)) -> None:
+    delete_submission(db, id, user_id=user_id)
 
 
 @router.patch("/{id}/status", response_model=SubmissionRead)

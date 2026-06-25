@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(token)
     const u = await fetchMe()
     setUser(u)
-    router.push("/dashboard")
+    router.push("/")
   }, [router])
 
   const logout = useCallback(() => {

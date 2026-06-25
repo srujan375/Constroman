@@ -168,6 +168,15 @@ class SubmissionCreate(BaseModel):
     custom_fields: dict[str, Any] = Field(default_factory=dict)
 
 
+class SubmissionUpdate(BaseModel):
+    project_id: int | None = None
+    submission_date: date | None = None
+    title: str | None = None
+    status: str | None = None
+    form_data: dict[str, Any] | None = None
+    submitted_by_id: int | None = None
+
+
 class SubmissionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

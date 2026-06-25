@@ -8,6 +8,7 @@ from app.models import Submission, AuditLog
 from app.repositories.submission_repo import SubmissionRepository
 from app.schemas import (
     SubmissionCreate,
+    SubmissionUpdate,
     SubmissionRead,
     SubmissionListParams,
     PaginatedResponse,
@@ -80,6 +81,55 @@ def list_submissions(
         page_size=params.page_size,
         total_pages=max(1, (total + params.page_size - 1) // params.page_size),
     )
+
+
+def update_submission(
+    db: Session,
+    submission_id: int,
+    payload: "SubmissionUpdate",
+) -> SubmissionRead:
+    repo = SubmissionRepository(db)
+    submission = repo.get_or_404(submission_id)
+    old_form_data = dict(submission.form_data)
+
+    data = payload.model_dump(exclude_unset=True, exclude_none=True)
+    for key, value in data.items():
+        setattr(submission, key, value)
+    db.flush()
+
+    audit = AuditLog(
+        organization_id=submission.organization_id,
+        entity_type="submission",
+        entity_id=submission.id,
+        action="updated",
+        user_id=payload.submitted_by_id,
+        changes={"form_data": {"from": old_form_data, "to": submission.form_data}},
+    )
+    db.add(audit)
+    db.commit()
+    db.refresh(submission)
+
+    logger.info("Updated submission %s", submission.id)
+    return SubmissionRead.model_validate(submission)
+
+
+def delete_submission(db: Session, submission_id: int, user_id: int | None = None) -> None:
+    repo = SubmissionRepository(db)
+    submission = repo.get_or_404(submission_id)
+    org_id = submission.organization_id
+
+    audit = AuditLog(
+        organization_id=org_id,
+        entity_type="submission",
+        entity_id=submission_id,
+        action="deleted",
+        user_id=user_id,
+        changes={"form_data": {"from": submission.form_data, "to": None}},
+    )
+    db.add(audit)
+    repo.delete(submission)
+    db.commit()
+    logger.info("Deleted submission %s", submission_id)
 
 
 def update_submission_status(

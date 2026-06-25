@@ -1,174 +1,101 @@
 'use client'
 
-import { useEffect, useState } from "react"
-import { use } from "react"
+import { use, useEffect, useState } from "react"
 import Link from "next/link"
-import {
-  MapPin,
-  Calendar,
-  FileText,
-  CloudRain,
-  BookOpen,
-  AlertTriangle,
-  Target,
-  BarChart3,
-  HardHat,
-  Users,
-  Package,
-  ChevronRight,
-  ArrowLeft,
-} from "lucide-react"
+import { MapPin, Calendar, ChevronRight, ArrowLeft } from "lucide-react"
 import Header from "@/components/layout/Header"
+import Icon from "@/components/Icon"
 import { fetchProjects } from "@/lib/api"
+import { sheetsByGroup } from "@/lib/sheets"
 import type { Project } from "@/lib/types"
-
-const formGroups = [
-  {
-    label: "Daily Summary",
-    color: "bg-blue-50 border-blue-100",
-    iconColor: "text-blue-600",
-    iconBg: "bg-blue-100",
-    forms: [
-      { label: "Site Report", href: "forms/site-report", icon: FileText, description: "Daily labour, material & progress summary" },
-    ],
-  },
-  {
-    label: "Site Management",
-    color: "bg-slate-50 border-slate-100",
-    iconColor: "text-slate-600",
-    iconBg: "bg-slate-100",
-    forms: [
-      { label: "Weather Log", href: "forms/weather", icon: CloudRain, description: "Temperature and rainfall records" },
-      { label: "Site Diary", href: "forms/site-diary", icon: BookOpen, description: "Daily site events and observations" },
-      { label: "Hindrance Register", href: "forms/hindrance", icon: AlertTriangle, description: "Work hindrance tracking and closure" },
-    ],
-  },
-  {
-    label: "Progress & Labour",
-    color: "bg-green-50 border-green-100",
-    iconColor: "text-green-600",
-    iconBg: "bg-green-100",
-    forms: [
-      { label: "Customer Milestones", href: "forms/customer-milestones", icon: Target, description: "Customer-facing milestone tracking" },
-      { label: "Construction Milestones", href: "forms/construction-milestones", icon: BarChart3, description: "Construction progress milestones" },
-      { label: "Work & Labour", href: "forms/work-labor", icon: HardHat, description: "Daily work quantities and labour deployed" },
-      { label: "Dept. Labour Register", href: "forms/dept-labor", icon: Users, description: "Departmental labour deployment records" },
-    ],
-  },
-  {
-    label: "Materials",
-    color: "bg-amber-50 border-amber-100",
-    iconColor: "text-amber-600",
-    iconBg: "bg-amber-100",
-    forms: [
-      { label: "Material Receipt", href: "forms/material-receipt", icon: Package, description: "Incoming material receipt and inspection" },
-    ],
-  },
-]
 
 export default function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params)
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
+  const grouped = sheetsByGroup()
 
   useEffect(() => {
     fetchProjects().then((data) => {
-      const p = data.find((p) => p.id === projectId) || null
-      setProject(p)
+      setProject(data.find((p) => p.id === projectId) || null)
       setLoading(false)
     })
   }, [projectId])
 
   if (loading) {
     return (
-      <div className="min-h-full bg-gray-50 flex items-center justify-center">
-        <p className="text-slate-500">Loading...</p>
+      <div className="min-h-full bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-500">Loading…</p>
       </div>
     )
   }
 
   if (!project) {
     return (
-      <div className="min-h-full bg-gray-50 flex items-center justify-center">
+      <div className="min-h-full bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-500">Project not found.</p>
-          <Link href="/dashboard" className="text-blue-600 text-sm mt-2 block">
-            Back to Dashboard
-          </Link>
+          <Link href="/" className="text-teal-600 text-sm mt-2 block">Back to All Forms</Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-slate-50">
       <Header title={project.name} subtitle={project.location} />
 
       <div className="p-6 space-y-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
+          <ArrowLeft className="w-4 h-4" /> Back to All Forms
+        </Link>
+
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-slate-500 text-sm">
-                <MapPin className="w-4 h-4" />
-                <span>{project.location}</span>
+                <MapPin className="w-4 h-4" /> <span>{project.location || "—"}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-500 text-sm">
                 <Calendar className="w-4 h-4" />
                 <span>Started {project.startDate ? new Date(project.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "N/A"}</span>
               </div>
             </div>
-            <span
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize ${
-                project.status === "active"
-                  ? "bg-green-100 text-green-700"
-                  : project.status === "completed"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-amber-100 text-amber-700"
-              }`}
-            >
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize ${
+              project.status === "active" ? "bg-green-100 text-green-700"
+              : project.status === "completed" ? "bg-teal-100 text-teal-700"
+              : "bg-amber-100 text-amber-700"}`}>
               {project.status}
             </span>
           </div>
         </div>
 
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </Link>
-
-        {formGroups.map((group) => (
-          <div key={group.label}>
-            <h3 className="text-sm font-semibold text-slate-500 uppercase mb-3">{group.label}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {group.forms.map((form) => {
-                const Icon = form.icon
-                return (
-                  <div
-                    key={form.href}
-                    className={`bg-white rounded-lg border ${group.color} p-4 hover:shadow-md transition-shadow`}
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-9 h-9 rounded-lg ${group.iconBg} flex items-center justify-center flex-shrink-0`}>
-                        <Icon className={`w-5 h-5 ${group.iconColor}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-800 text-sm">{form.label}</h4>
-                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{form.description}</p>
-                      </div>
+        {grouped.map(({ group, sheets }) => (
+          <div key={group.key}>
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name={group.icon} className="w-4 h-4 text-teal-600" />
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">{group.label}</h3>
+              <span className="text-xs text-slate-400">({sheets.length})</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {sheets.map((sheet) => (
+                <Link
+                  key={sheet.slug}
+                  href={`/projects/${projectId}/sheets/${sheet.slug}`}
+                  className="group bg-white rounded-xl border border-slate-200 p-4 hover:border-teal-300 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
+                      <Icon name={sheet.icon} className="w-5 h-5 text-teal-600" />
                     </div>
-                    <Link
-                      href={`/projects/${projectId}/${form.href}`}
-                      className="flex items-center justify-center gap-1 w-full py-1.5 text-sm text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors font-medium"
-                    >
-                      Open
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">{sheet.code}</p>
+                      <h4 className="font-semibold text-slate-800 text-sm leading-tight">{sheet.name}</h4>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-teal-500 transition-colors" />
                   </div>
-                )
-              })}
+                </Link>
+              ))}
             </div>
           </div>
         ))}

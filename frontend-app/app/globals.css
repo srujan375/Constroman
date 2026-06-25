@@ -1,26 +1,47 @@
 @import "tailwindcss";
 
-body {
-  background-color: rgb(249 250 251);
+:root {
+  --brand: 13 148 136; /* teal-600 */
 }
 
+body {
+  background-color: rgb(248 250 252); /* slate-50 */
+  color: rgb(15 23 42);
+}
+
+/* Sidebar navigation links */
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
-  color: rgb(203 213 225);
+  color: rgb(203 213 225); /* slate-300 */
   transition: background-color 0.15s, color 0.15s;
 }
 
 .sidebar-link:hover {
-  background-color: rgb(51 65 85);
+  background-color: rgb(30 41 59); /* slate-800 */
   color: white;
 }
 
 .sidebar-link.active {
-  background-color: rgb(51 65 85);
+  background-color: rgb(13 148 136); /* teal-600 */
   color: white;
+}
+
+/* When printing, show only the active document content */
+@media print {
+  aside,
+  header,
+  .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  main {
+    overflow: visible !important;
+  }
 }

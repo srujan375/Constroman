@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from "react"
-import { Printer, User as UserIcon, LogOut } from "lucide-react"
+import Link from "next/link"
+import { Printer, LogOut, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/components/auth/AuthProvider"
 
 type HeaderProps = {
@@ -33,9 +34,18 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{title}</h1>
-        {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
+      <div className="flex items-center gap-4 min-w-0">
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-teal-700 transition-colors flex-shrink-0"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:block">All Forms</span>
+        </Link>
+        <div className="border-l border-slate-200 pl-4 min-w-0">
+          <h1 className="text-xl font-bold text-slate-800 truncate">{title}</h1>
+          {subtitle && <p className="text-sm text-slate-500 mt-0.5 truncate">{subtitle}</p>}
+        </div>
       </div>
       <div className="flex items-center gap-4">
         <span className="text-sm text-slate-500 hidden sm:block">{today}</span>
